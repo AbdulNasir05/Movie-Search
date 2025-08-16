@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Search 🎬</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-950 text-white min-h-screen p-6">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-2 text-indigo-400">Movie Search 🎬</h1>
+    <p class="text-center text-gray-300 mb-6">Fetches movie details and displays posters, ratings, and full info.</p>
+    <form id="searchForm" class="flex gap-2 mb-8">
+      <input id="query" type="text" placeholder="Search for a movie..." class="flex-1 p-3 rounded-xl text-black focus:outline-none">
+      <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 px-5 py-3 rounded-xl font-semibold">Search</button>
+    </form>
+    <p id="loading" class="text-center text-gray-300 hidden">Loading...</p>
+    <div id="results" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    <p id="emptyMsg" class="text-center text-gray-500 mt-10 hidden">No movies found. Try searching something else.</p>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50">
+    <div class="bg-gray-900 rounded-2xl max-w-lg w-full p-6 relative">
+      <button id="closeModal" class="absolute top-3 right-3 text-gray-400 hover:text-white">✕</button>
+      <img id="modalPoster" class="w-full h-80 object-cover rounded-xl mb-4">
+      <h2 id="modalTitle" class="text-2xl font-bold mb-2"></h2>
+      <p id="modalYear" class="text-gray-400 mb-2"></p>
+      <p id="modalGenre" class="text-gray-300 mb-2"></p>
+      <p id="modalPlot" class="mb-3"></p>
+      <p id="modalActors" class="text-sm text-gray-300 mb-2"></p>
+      <p id="modalRating" class="font-semibold text-yellow-400"></p>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = "fd5a0230"; // 🔑 Replace with your OMDb API key
+
+    const form = document.getElementById("searchForm");
+    const queryInput = document.getElementById("query");
+    const results = document.getElementById("results");
+    const loading = document.getElementById("loading");
+    const emptyMsg = document.getElementById("emptyMsg");
+    const modal = document.getElementById("modal");
+    const closeModal = document.getElementById("closeModal");
+    const modalPoster = document.getElementById("modalPoster");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalYear = document.getElementById("modalYear");
+    const modalGenre = document.getElementById("modalGenre");
+    const modalPlot = document.getElementById("modalPlot");
+    const modalActors = document.getElementById("modalActors");
+    const modalRating = document.getElementById("modalRating");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = queryInput.value.trim();
+      if (!query) return;
+      results.innerHTML = "";
+      emptyMsg.classList.add("hidden");
+      loading.classList.remove("hidden");
+
+      try {
+        const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`);
+        const data = await res.json();
+        if (data.Search) {
+          data.Search.forEach((movie) => {
+            const card = document.createElement("div");
+            card.className = "bg-gray-900 rounded-2xl shadow-lg overflow-hidden hover:scale-105 transition-transform cursor-pointer";
+            card.innerHTML = `
+              <img src="${movie.Poster !== "N/A" ? movie.Poster : "/no-image.png"}" alt="${movie.Title}" class="w-full h-72 object-cover">
+              <div class="p-4">
+                <h2 class="font-semibold text-lg truncate">${movie.Title}</h2>
+                <p class="text-gray-400">${movie.Year}</p>
+              </div>
+            `;
+            card.addEventListener("click", () => showDetails(movie.imdbID));
+            results.appendChild(card);
+          });
+        } else {
+          emptyMsg.classList.remove("hidden");
+        }
+      } catch (err) {
+        emptyMsg.textContent = "Something went wrong. Try again.";
+        emptyMsg.classList.remove("hidden");
+      } finally {
+        loading.classList.add("hidden");
+      }
+    });
+
+    async function showDetails(id) {
+      try {
+        const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&i=${id}&plot=full`);
+        const movie = await res.json();
+        modalPoster.src = movie.Poster !== "N/A" ? movie.Poster : "/no-image.png";
+        modalTitle.textContent = movie.Title;
+        modalYear.textContent = movie.Year;
+        modalGenre.textContent = `Genre: ${movie.Genre}`;
+        modalPlot.textContent = movie.Plot;
+        modalActors.textContent = `Actors: ${movie.Actors}`;
+        modalRating.textContent = `IMDB Rating: ${movie.imdbRating}`;
+        modal.classList.remove("hidden");
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    closeModal.addEventListener("click", () => modal.classList.add("hidden"));
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.add("hidden");
+    });
+  </script>
+</body>
+</html>

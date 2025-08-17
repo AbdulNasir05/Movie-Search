@@ -4,110 +4,192 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Movie Search 🎬</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0f172a; /* dark navy */
+      color: white;
+    }
+    .card {
+      background-color: #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+      background-color: #334155;
+    }
+    /* Modal styling */
+    #movieModal {
+      display: none;
+      position: fixed;
+      z-index: 50;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.85);
+      align-items: center;
+      justify-content: center;
+    }
+    #modalContent {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+  </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen p-6">
-  <div class="max-w-4xl mx-auto">
-    <h1 class="text-4xl font-bold text-center mb-2 text-indigo-400">Movie Search 🎬</h1>
-    <p class="text-center text-gray-300 mb-6">Fetches movie details and displays posters, ratings, and full info.</p>
-    <form id="searchForm" class="flex gap-2 mb-8">
-      <input id="query" type="text" placeholder="Search for a movie..." class="flex-1 p-3 rounded-xl text-black focus:outline-none">
-      <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 px-5 py-3 rounded-xl font-semibold">Search</button>
-    </form>
-    <p id="loading" class="text-center text-gray-300 hidden">Loading...</p>
-    <div id="results" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
-    <p id="emptyMsg" class="text-center text-gray-500 mt-10 hidden">No movies found. Try searching something else.</p>
+<body class="flex flex-col items-center p-6">
+
+  <h1 class="text-4xl font-bold mb-2 text-purple-400">Movie Search 🎬</h1>
+  <p class="mb-6 text-gray-300">Fetches movie details and displays posters, ratings, and full info.</p>
+
+  <div class="flex w-full max-w-xl mb-8">
+    <input id="searchInput" type="text" placeholder="Search for a movie..."
+           class="flex-1 px-4 py-2 rounded-l-lg text-black focus:outline-none">
+    <button onclick="searchMovie()"
+            class="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-r-lg">Search</button>
   </div>
 
+  <!-- Featured Movies Section -->
+  <h2 id="sectionTitle" class="text-2xl font-semibold text-purple-300 mb-4">🎥 Featured Movies</h2>
+  <div id="movieContainer" class="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-6xl"></div>
+
   <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50">
-    <div class="bg-gray-900 rounded-2xl max-w-lg w-full p-6 relative">
-      <button id="closeModal" class="absolute top-3 right-3 text-gray-400 hover:text-white">✕</button>
-      <img id="modalPoster" class="w-full h-80 object-cover rounded-xl mb-4">
-      <h2 id="modalTitle" class="text-2xl font-bold mb-2"></h2>
-      <p id="modalYear" class="text-gray-400 mb-2"></p>
-      <p id="modalGenre" class="text-gray-300 mb-2"></p>
-      <p id="modalPlot" class="mb-3"></p>
-      <p id="modalActors" class="text-sm text-gray-300 mb-2"></p>
-      <p id="modalRating" class="font-semibold text-yellow-400"></p>
+  <div id="movieModal" class="hidden">
+    <div id="modalContent">
+      <span onclick="closeModal()" class="float-right text-gray-300 cursor-pointer text-xl">✖</span>
+      <div id="modalBody"></div>
     </div>
   </div>
 
   <script>
-    const API_KEY = "fd5a0230"; // 🔑 Replace with your OMDb API key
+    const API_KEY = "fd5a0230"; // Replace with your OMDb API key
+    const movieContainer = document.getElementById("movieContainer");
+    const modal = document.getElementById("movieModal");
+    const modalBody = document.getElementById("modalBody");
+    const searchInput = document.getElementById("searchInput");
+    const sectionTitle = document.getElementById("sectionTitle");
 
-    const form = document.getElementById("searchForm");
-    const queryInput = document.getElementById("query");
-    const results = document.getElementById("results");
-    const loading = document.getElementById("loading");
-    const emptyMsg = document.getElementById("emptyMsg");
-    const modal = document.getElementById("modal");
-    const closeModal = document.getElementById("closeModal");
-    const modalPoster = document.getElementById("modalPoster");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalYear = document.getElementById("modalYear");
-    const modalGenre = document.getElementById("modalGenre");
-    const modalPlot = document.getElementById("modalPlot");
-    const modalActors = document.getElementById("modalActors");
-    const modalRating = document.getElementById("modalRating");
+    // Default popular movies
+    const defaultMovies = [
+      "Inception",
+      "The Dark Knight",
+      "Interstellar",
+      "Avengers: Endgame",
+      "The Matrix",
+      "Gladiator",
+      "Titanic",
+      "Joker"
+    ];
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const query = queryInput.value.trim();
-      if (!query) return;
-      results.innerHTML = "";
-      emptyMsg.classList.add("hidden");
-      loading.classList.remove("hidden");
-
-      try {
-        const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`);
-        const data = await res.json();
-        if (data.Search) {
-          data.Search.forEach((movie) => {
-            const card = document.createElement("div");
-            card.className = "bg-gray-900 rounded-2xl shadow-lg overflow-hidden hover:scale-105 transition-transform cursor-pointer";
-            card.innerHTML = `
-              <img src="${movie.Poster !== "N/A" ? movie.Poster : "/no-image.png"}" alt="${movie.Title}" class="w-full h-72 object-cover">
-              <div class="p-4">
-                <h2 class="font-semibold text-lg truncate">${movie.Title}</h2>
-                <p class="text-gray-400">${movie.Year}</p>
-              </div>
-            `;
-            card.addEventListener("click", () => showDetails(movie.imdbID));
-            results.appendChild(card);
-          });
-        } else {
-          emptyMsg.classList.remove("hidden");
-        }
-      } catch (err) {
-        emptyMsg.textContent = "Something went wrong. Try again.";
-        emptyMsg.classList.remove("hidden");
-      } finally {
-        loading.classList.add("hidden");
-      }
-    });
-
-    async function showDetails(id) {
-      try {
-        const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&i=${id}&plot=full`);
+    // Load default movies
+    async function loadDefaultMovies() {
+      sectionTitle.textContent = "🎥 Featured Movies";
+      movieContainer.innerHTML = "";
+      for (const title of defaultMovies) {
+        const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&t=${title}`);
         const movie = await res.json();
-        modalPoster.src = movie.Poster !== "N/A" ? movie.Poster : "/no-image.png";
-        modalTitle.textContent = movie.Title;
-        modalYear.textContent = movie.Year;
-        modalGenre.textContent = `Genre: ${movie.Genre}`;
-        modalPlot.textContent = movie.Plot;
-        modalActors.textContent = `Actors: ${movie.Actors}`;
-        modalRating.textContent = `IMDB Rating: ${movie.imdbRating}`;
-        modal.classList.remove("hidden");
-      } catch (err) {
-        console.error(err);
+
+        if (movie.Response === "True") {
+          const card = document.createElement("div");
+          card.className = "card shadow-lg cursor-pointer";
+          card.onclick = () => showDetails(movie.imdbID);
+
+          card.innerHTML = `
+            <img src="${movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/300"}" 
+                 alt="Movie Poster" class="rounded-lg mb-2 w-full h-80 object-cover">
+            <h2 class="text-lg font-semibold">${movie.Title}</h2>
+            <p class="text-gray-400">${movie.Year}</p>
+          `;
+          movieContainer.appendChild(card);
+        }
       }
     }
 
-    closeModal.addEventListener("click", () => modal.classList.add("hidden"));
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.classList.add("hidden");
+    // Search movies
+    async function searchMovie() {
+      const query = searchInput.value.trim();
+      if (!query) {
+        loadDefaultMovies();
+        return;
+      }
+
+      const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&s=${query}`);
+      const data = await res.json();
+
+      movieContainer.innerHTML = "";
+      sectionTitle.textContent = `🔍 Results for "${query}"`;
+
+      if (data.Search) {
+        data.Search.forEach(movie => {
+          const card = document.createElement("div");
+          card.className = "card shadow-lg cursor-pointer";
+          card.onclick = () => showDetails(movie.imdbID);
+
+          card.innerHTML = `
+            <img src="${movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/300"}" 
+                 alt="Movie Poster" class="rounded-lg mb-2 w-full h-80 object-cover">
+            <h2 class="text-lg font-semibold">${movie.Title}</h2>
+            <p class="text-gray-400">${movie.Year}</p>
+          `;
+          movieContainer.appendChild(card);
+        });
+      } else {
+        movieContainer.innerHTML = `<p class="text-red-400">No movies found!</p>`;
+      }
+    }
+
+    // Show details in modal
+    async function showDetails(id) {
+      const res = await fetch(`https://www.omdbapi.com/?apikey=${API_KEY}&i=${id}&plot=full`);
+      const movie = await res.json();
+
+      modalBody.innerHTML = `
+        <h2 class="text-2xl font-bold mb-2">${movie.Title} (${movie.Year})</h2>
+        <img src="${movie.Poster !== "N/A" ? movie.Poster : "https://via.placeholder.com/300"}" 
+             class="rounded-lg mb-4 w-full max-h-96 object-contain">
+        <p class="mb-2"><span class="font-semibold">Genre:</span> ${movie.Genre}</p>
+        <p class="mb-2"><span class="font-semibold">Director:</span> ${movie.Director}</p>
+        <p class="mb-2"><span class="font-semibold">Actors:</span> ${movie.Actors}</p>
+        <p class="mb-2"><span class="font-semibold">IMDB Rating:</span> ⭐ ${movie.imdbRating}</p>
+        <p class="mb-2"><span class="font-semibold">Plot:</span> ${movie.Plot}</p>
+      `;
+
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    // Keyboard Support
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeModal();
+      }
+      if (e.key === "Enter" && document.activeElement === searchInput) {
+        searchMovie();
+      }
     });
+
+    // Detect input clear
+    searchInput.addEventListener("input", () => {
+      if (searchInput.value.trim() === "") {
+        loadDefaultMovies();
+      }
+    });
+
+    // Load featured movies on page load
+    window.onload = () => {
+      searchInput.focus();
+      loadDefaultMovies();
+    };
   </script>
 </body>
 </html>

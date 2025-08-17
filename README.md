@@ -1,4 +1,4 @@
-🎬 Movie Search App
+# 🎬 Movie Search App
 
 A sleek and modern Movie Search App built using HTML, CSS, and JavaScript with the OMDb API.
 This app allows users to search for movies, view posters, ratings, detailed info, and open a responsive dark-themed modal popup with scrollable movie details.
@@ -18,15 +18,14 @@ This app allows users to search for movies, view posters, ratings, detailed info
 
 ---
 
-🚀 Features
-
-✅ Search movies by title (Enter key support)
-✅ Display posters, title, and year in a grid layout
-✅ Click on a movie to open a details popup modal (poster, plot, ratings, genre, cast, etc.)
-✅ Scroll support inside modal for long plots
-✅ Close modal with ESC key or ✖ button
-✅ Dark theme UI with responsive design
-✅ Includes Featured Movies on the home page
+## 🚀 Features
+✅ Search movies by title (Enter key support)  
+✅ Display posters, title, and year in a grid layout  
+✅ Click on a movie to open a details popup modal (poster, plot, ratings, genre, cast, etc.)  
+✅ Scroll support inside modal for long plots  
+✅ Close modal with ESC key or ✖ button  
+✅ Dark theme UI with responsive design  
+✅ Includes Featured Movies on the home page  
 
 ---
 

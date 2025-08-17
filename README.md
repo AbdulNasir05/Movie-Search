@@ -1,26 +1,32 @@
-# 🎬 Movie Search App
+🎬 Movie Search App
 
-Fetches movie details and displays posters, ratings, and full info.
+A sleek and modern Movie Search App built using HTML, CSS, and JavaScript with the OMDb API.
+This app allows users to search for movies, view posters, ratings, detailed info, and open a responsive dark-themed modal popup with scrollable movie details.
 
 ---
 
 ## 📸 Preview
-![App Screenshot]<img width="1383" height="868" alt="Screenshot 2025-08-17 010329" src="https://github.com/user-attachments/assets/8e4bc4a3-730a-4415-b4b5-54d4d0ddab81" />
 
+⭐ Featured Movies
+<img width="1920" height="1080" alt="Screenshot (370)" src="https://github.com/user-attachments/assets/468ff3e1-8ccf-4fec-8044-d15180645dc0" />
+
+🔎 Search Results
+<img width="1920" height="1080" alt="Screenshot (371)" src="https://github.com/user-attachments/assets/26a473cc-f3d2-465f-b98e-917ada52ab3b" />
+
+🎥 Movie Details Popup
+<img width="1920" height="1080" alt="Screenshot (372)" src="https://github.com/user-attachments/assets/80b964d2-ee25-4959-844e-c46f37562914" />
 
 ---
 
-## 🚀 Features  
-- Search movies by title.  
-- Display movie posters, year, and titles.  
-- Click a movie card to view full details in a modal:  
-  - Poster  
-  - Year  
-  - Genre  
-  - Plot  
-  - Actors  
-  - IMDb rating ⭐  
-- Responsive and modern UI with Tailwind CSS.  
+🚀 Features
+
+✅ Search movies by title (Enter key support)
+✅ Display posters, title, and year in a grid layout
+✅ Click on a movie to open a details popup modal (poster, plot, ratings, genre, cast, etc.)
+✅ Scroll support inside modal for long plots
+✅ Close modal with ESC key or ✖ button
+✅ Dark theme UI with responsive design
+✅ Includes Featured Movies on the home page
 
 ---
 
@@ -52,11 +58,3 @@ const API_KEY = "your_api_key";
 If you like this project, don’t forget to star the repo 🌟
 
 ---
-
-👉 You just need to:  
-1. Save this as `README.md` in your repo root.  
-2. Add a screenshot at `assets/screenshot.png` (or change the path in the file).  
-
-Would you like me to **add a "Live Demo" section** too (for when you deploy it on GitHub Pages)?
-
-
